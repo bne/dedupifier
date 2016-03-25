@@ -13,9 +13,9 @@ class DedupeTestCase(unittest.TestCase):
 		self.dedupifier.get_items()
 
 		self.assertEqual(len(self.dedupifier.items), 3)
-		self.assertEqual(len(self.dedupifier.items['Bennyisawesome.jpg']), 6)
-		self.assertEqual(len(self.dedupifier.items['blackmagic_hotpixel_test.jpg']), 2)
-		self.assertEqual(len(self.dedupifier.items['hunger-games.png']), 5)
+		self.assertEqual(len(self.dedupifier.items['Bennyisawesome.jpg']), 4)
+		self.assertEqual(len(self.dedupifier.items['blackmagic_hotpixel_test.jpg']), 5)
+		self.assertEqual(len(self.dedupifier.items['hunger-games.png']), 4)
 
 	def test_find_duplicates_by_hash(self):
 		self.dedupifier.get_items(use_hash=True)
