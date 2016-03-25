@@ -4,5 +4,5 @@ dedupifier
 test
 ----
 ::
-	pip install -U pytest
+	easy_install pytest
 	py.test
