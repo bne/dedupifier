@@ -6,22 +6,102 @@ from dedupifier import dedupe
 class DedupeTestCase(unittest.TestCase):
 
     def setUp(self):
-        path = os.path.join(os.path.dirname(__file__), 'fixtures')
-        self.dedupifier = dedupe.Dedupifier(path)
+        red_file = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00d\x00\x00\x00d\x08\x06\x00\x00\x00p\xe2\x95T\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\x00\x01\x00IDATx\x9c\xed\xd1A\r\x00 \x10\xc0\xb0\x03\xff\x9e\xe1\x8d\x02\xf6h\x15,\xd9:3g\xc8\xd8\xbf\x03x\x19\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\xcc\x05\xecL\x02\xc6O\xb9\xb7?\x00\x00\x00\x00IEND\xaeB`\x82'
+        blue_file = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00d\x00\x00\x00d\x08\x06\x00\x00\x00p\xe2\x95T\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\x00\x01\x01IDATx\x9c\xed\xd11\r\x00 \x00\xc00@\x0c\xfe\x1d\xc2\x8d\x02v\xb4\n\x96l\x8e}\xce c\xfd\x0e\xe0eH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x17+\xc2\x02\xec\x12\x9cRP\x00\x00\x00\x00IEND\xaeB`\x82'
+        yellow_file = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00d\x00\x00\x00d\x08\x06\x00\x00\x00p\xe2\x95T\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\x00\x01\x01IDATx\x9c\xed\xd11\r\x00 \x00\xc00\xc0\xbf@\xdc\xc0\x8d\x02v\xb4\n\x96l\x9e=\xce c\xfd\x0e\xe0eH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x17\x1c\xc7\x03\x9e\x8a\xb8\xfb\xf8\x00\x00\x00\x00IEND\xaeB`\x82'
+        green_file = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00d\x00\x00\x00d\x08\x06\x00\x00\x00p\xe2\x95T\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\x00\x01\x01IDATx\x9c\xed\xd11\r\x00 \x00\xc00\xc0\t\xfeE\xc2\x8d\x02v\xb4\n\x96l\x8e\xb3\xcf c\xfd\x0e\xe0eH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x17\x1dI\x02\xe7\x0f\x94\xb8q\x00\x00\x00\x00IEND\xaeB`\x82'
+        structure = {
+            'a': {
+                'red.png': red_file,
+                'blue.png': blue_file,
+            },
+            'b': {
+                'a': {
+                    'red.png': blue_file,
+                },
+                'b': {
+                    'blue.png': blue_file,
+                    'yellow.png': red_file,
+                },
+                'yellow.png': yellow_file,
+            },
+            'c': {
+                'a': {
+                    'yellow.png': green_file,
+                    'blue.png': blue_file,
+                    'red.png': red_file,
+                },
+                'b': {
+                    'a': {
+                        'red.png': red_file,
+                    }
+                },
+                'c': {
+                    'a': {
+                        'yellow.png': red_file,
+                        'blue.png': green_file
+                    },
+                    'b': {
+                        'red.png': red_file
+                    }
+                }
+            }
+        }
+        
+        self.root_path = '' #os.path.dirname(__file__)
+        print('\n')
+        self.create_data(structure)
 
-    def test_find_duplicates_by_name(self):
-        self.dedupifier.get_items()
+        #self.dedupifier = dedupe.Dedupifier(self.root_path)
 
-        self.assertEqual(len(self.dedupifier.items), 3)
-        self.assertEqual(len(self.dedupifier.items['Bennyisawesome.jpg']), 4)
-        self.assertEqual(len(self.dedupifier.items['blackmagic_hotpixel_test.jpg']), 5)
-        self.assertEqual(len(self.dedupifier.items['hunger-games.png']), 4)
+    def create_data(self, structure):
+        self.indent = 0
+        self.current_path = self.root_path
+        self._create_structure(structure)
 
-    def test_find_duplicates_by_hash(self):
-        self.dedupifier.get_items(use_hash=True)
+    def _create_structure(self, structure):
 
-        self.assertEqual(len(self.dedupifier.items), 3)
-        self.assertEqual(len(self.dedupifier.items['07486b2d43fe6e8bbba0cf500c56db01']), 6)
-        self.assertEqual(len(self.dedupifier.items['9ec4f5e7da187ff44d179d85aac654e4']), 2)
-        self.assertEqual(len(self.dedupifier.items['c714aa4f97b706b2cd07b360f2fd1dbb']), 5)
+        self.indent += 4
+
+        for item in structure:
+
+            self.parent_path = self.current_path
+            #print(' '*self.indent, self.parent_path)
+            self.current_path = os.path.join(self.parent_path, item)
+            #print(' '*self.indent, self.current_path)            
+
+            print(' '*self.indent, self.current_path)
+
+            if isinstance(structure[item], bytes):
+                continue
+                #print(item)
+            else:
+
+                self._create_structure(structure[item])
+    
+        self.current_path = os.path.split(self.current_path)[0]
+
+        self.indent -= 4
+
+
+
+
+    def test_thing(self):
+        """"""
+
+    # def test_find_duplicates_by_name(self):
+    #     self.dedupifier.get_items()
+
+    #     self.assertEqual(len(self.dedupifier.items), 3)
+    #     self.assertEqual(len(self.dedupifier.items['red.png']), 5)
+    #     self.assertEqual(len(self.dedupifier.items['blue.png']), 4)
+    #     self.assertEqual(len(self.dedupifier.items['yellow.png']), 4)
+
+    # def test_find_duplicates_by_hash(self):
+    #     self.dedupifier.get_items(use_hash=True)
+
+    #     self.assertEqual(len(self.dedupifier.items), 3)
+    #     self.assertEqual(len(self.dedupifier.items['07486b2d43fe6e8bbba0cf500c56db01']), 6)
+    #     self.assertEqual(len(self.dedupifier.items['9ec4f5e7da187ff44d179d85aac654e4']), 2)
+    #     self.assertEqual(len(self.dedupifier.items['c714aa4f97b706b2cd07b360f2fd1dbb']), 5)
 
