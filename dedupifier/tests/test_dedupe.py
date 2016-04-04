@@ -1,4 +1,5 @@
 import os
+import shutil
 import unittest
 
 from dedupifier import dedupe
@@ -12,23 +13,23 @@ class DedupeTestCase(unittest.TestCase):
         green_file = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00d\x00\x00\x00d\x08\x06\x00\x00\x00p\xe2\x95T\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\x00\x01\x01IDATx\x9c\xed\xd11\r\x00 \x00\xc00\xc0\t\xfeE\xc2\x8d\x02v\xb4\n\x96l\x8e\xb3\xcf c\xfd\x0e\xe0eH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x17\x1dI\x02\xe7\x0f\x94\xb8q\x00\x00\x00\x00IEND\xaeB`\x82'
         structure = {
             'a': {
-                'red.png': red_file,
-                'blue.png': blue_file,
+                'red.png': red_file, 
+                'blue.png': blue_file, 
             },
             'b': {
                 'a': {
                     'red.png': blue_file,
                 },
                 'b': {
-                    'blue.png': blue_file,
+                    'blue.png': blue_file, 
                     'yellow.png': red_file,
                 },
                 'yellow.png': yellow_file,
             },
             'c': {
                 'a': {
-                    'yellow.png': green_file,
-                    'blue.png': blue_file,
+                    'yellow.png': green_file, 
+                    'blue.png': blue_file, 
                     'red.png': red_file,
                 },
                 'b': {
@@ -38,7 +39,7 @@ class DedupeTestCase(unittest.TestCase):
                 },
                 'c': {
                     'a': {
-                        'yellow.png': red_file,
+                        'yellow.png': red_file, 
                         'blue.png': green_file
                     },
                     'b': {
@@ -48,60 +49,59 @@ class DedupeTestCase(unittest.TestCase):
             }
         }
         
-        self.root_path = '' #os.path.dirname(__file__)
-        print('\n')
+        self.root_path = os.path.join(os.path.dirname(__file__), 'data')
         self.create_data(structure)
+        self.dedupifier = dedupe.Dedupifier(self.root_path)
 
-        #self.dedupifier = dedupe.Dedupifier(self.root_path)
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.root_path)
+        except FileNotFoundError:
+            pass        
 
     def create_data(self, structure):
-        self.indent = 0
-        self.current_path = self.root_path
+        self.tearDown()
+        os.mkdir(self.root_path)
+
+        self.current_path = [self.root_path]
         self._create_structure(structure)
 
     def _create_structure(self, structure):
 
-        self.indent += 4
-
         for item in structure:
 
-            self.parent_path = self.current_path
-            #print(' '*self.indent, self.parent_path)
-            self.current_path = os.path.join(self.parent_path, item)
-            #print(' '*self.indent, self.current_path)            
+            self.current_path.append(item)
 
-            print(' '*self.indent, self.current_path)
-
-            if isinstance(structure[item], bytes):
-                continue
-                #print(item)
-            else:
-
+            if isinstance(structure[item], dict):
+                os.mkdir(os.path.join(*self.current_path))
                 self._create_structure(structure[item])
-    
-        self.current_path = os.path.split(self.current_path)[0]
 
-        self.indent -= 4
+            elif isinstance(structure[item], bytes):
+                with open(os.path.join(*self.current_path), 'wb') as file:
+                    file.write(structure[item])
 
+            self.current_path.pop()
 
+    def test_find_duplicates_by_name(self):
+        self.dedupifier.get_items()
 
+        self.assertEqual(len(self.dedupifier.items), 3)
+        self.assertEqual(len(self.dedupifier.items['red.png']), 5)
+        self.assertEqual(len(self.dedupifier.items['blue.png']), 4)
+        self.assertEqual(len(self.dedupifier.items['yellow.png']), 4)
 
-    def test_thing(self):
-        """"""
+    def test_find_duplicates_by_hash(self):
+        """
+        4ad906ab212802e3399e47577cd11ea4 = green
+        f44b218520c49516f4dbd66996e35dbb = blue
+        caedc0f880459ab7f779e410d854ba3e = yellow
+        f8d6a5a1048e120012f949ebba817205 = red
+        """
+        self.dedupifier.get_items(use_hash=True)
 
-    # def test_find_duplicates_by_name(self):
-    #     self.dedupifier.get_items()
-
-    #     self.assertEqual(len(self.dedupifier.items), 3)
-    #     self.assertEqual(len(self.dedupifier.items['red.png']), 5)
-    #     self.assertEqual(len(self.dedupifier.items['blue.png']), 4)
-    #     self.assertEqual(len(self.dedupifier.items['yellow.png']), 4)
-
-    # def test_find_duplicates_by_hash(self):
-    #     self.dedupifier.get_items(use_hash=True)
-
-    #     self.assertEqual(len(self.dedupifier.items), 3)
-    #     self.assertEqual(len(self.dedupifier.items['07486b2d43fe6e8bbba0cf500c56db01']), 6)
-    #     self.assertEqual(len(self.dedupifier.items['9ec4f5e7da187ff44d179d85aac654e4']), 2)
-    #     self.assertEqual(len(self.dedupifier.items['c714aa4f97b706b2cd07b360f2fd1dbb']), 5)
+        self.assertEqual(len(self.dedupifier.items), 4)
+        self.assertEqual(len(self.dedupifier.items['4ad906ab212802e3399e47577cd11ea4']), 2)
+        self.assertEqual(len(self.dedupifier.items['f44b218520c49516f4dbd66996e35dbb']), 4)
+        self.assertEqual(len(self.dedupifier.items['caedc0f880459ab7f779e410d854ba3e']), 1)
+        self.assertEqual(len(self.dedupifier.items['f8d6a5a1048e120012f949ebba817205']), 6)
 

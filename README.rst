@@ -8,4 +8,4 @@ install
 test
 ::
     bin/pip install pytest
-    py.test dedupifier
+    bin/py.test dedupifier
