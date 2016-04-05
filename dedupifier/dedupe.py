@@ -1,9 +1,11 @@
 import os
 import hashlib
+import argparse
 
-BLOCK_SIZE = 65536
 
 class Dedupifier(object):
+
+    block_size = 65536
 
     def __init__(self, path):
         self.path = path
@@ -12,7 +14,7 @@ class Dedupifier(object):
         _hash = hashlib.md5()
         with open(path, 'rb') as _file:
             while True:
-                data = _file.read(BLOCK_SIZE)
+                data = _file.read(self.block_size)
                 if not data:
                     break
                 _hash.update(data)
@@ -36,3 +38,16 @@ class Dedupifier(object):
                 self.items[key].append(full_path)
 
         return self.items
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Dedupifier')
+    parser.add_argument('-p', '--path', help='Path to directory to dedupe')
+    args = parser.parse_args()
+
+    print(args.path)
+
+
+
+if __name__ == "__main__":
+    main()
