@@ -79,6 +79,7 @@ class DedupeTestCase(unittest.TestCase):
             pass
 
     def test_find_duplicates_by_name(self):
+        self.dedupifier.use_hash = False
         self.dedupifier.get_items()
 
         self.assertEqual(len(self.dedupifier.items), 3)
@@ -93,7 +94,8 @@ class DedupeTestCase(unittest.TestCase):
         caedc0f880459ab7f779e410d854ba3e = yellow
         f8d6a5a1048e120012f949ebba817205 = red
         """
-        self.dedupifier.get_items(use_hash=True)
+        self.dedupifier.use_hash = True
+        self.dedupifier.get_items()
 
         self.assertEqual(len(self.dedupifier.items), 4)
         self.assertEqual(len(self.dedupifier.items['4ad906ab212802e3399e47577cd11ea4']), 2)
