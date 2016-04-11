@@ -11,7 +11,7 @@ YELLOW_FILE = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00d\x00\x00\x00d\x0
 GREEN_FILE = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00d\x00\x00\x00d\x08\x06\x00\x00\x00p\xe2\x95T\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\x00\x01\x01IDATx\x9c\xed\xd11\r\x00 \x00\xc00\xc0\t\xfeE\xc2\x8d\x02v\xb4\n\x96l\x8e\xb3\xcf c\xfd\x0e\xe0eH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x86\xc4\x18\x12cH\x8c!1\x17\x1dI\x02\xe7\x0f\x94\xb8q\x00\x00\x00\x00IEND\xaeB`\x82'
 
 
-class DedupeTestCase(unittest.TestCase):
+class BaseTestCase(unittest.TestCase):
 
     root_path = os.path.join(os.path.dirname(__file__), 'data')
     structure = {
@@ -70,22 +70,24 @@ class DedupeTestCase(unittest.TestCase):
 
         _create_structure(self.structure)
 
-        self.dedupifier = dedupe.Dedupifier(self.root_path)
-
     def tearDown(self):
         try:
             shutil.rmtree(self.root_path)
         except FileNotFoundError:
             pass
 
-    def test_find_duplicates_by_name(self):
-        self.dedupifier.use_hash = False
-        self.dedupifier.get_items()
 
-        self.assertEqual(len(self.dedupifier.items), 3)
-        self.assertEqual(len(self.dedupifier.items['red.png']), 5)
-        self.assertEqual(len(self.dedupifier.items['blue.png']), 4)
-        self.assertEqual(len(self.dedupifier.items['yellow.png']), 4)
+class FindDuplicatesTestCase(BaseTestCase):
+
+    def test_find_duplicates_by_name(self):
+
+        dedupifier = dedupe.Dedupifier(self.root_path, use_hash=False)
+        dedupifier.get_items()
+
+        self.assertEqual(len(dedupifier.items), 3)
+        self.assertEqual(len(dedupifier.items['red.png']), 5)
+        self.assertEqual(len(dedupifier.items['blue.png']), 4)
+        self.assertEqual(len(dedupifier.items['yellow.png']), 4)
 
     def test_find_duplicates_by_hash(self):
         """
@@ -94,12 +96,29 @@ class DedupeTestCase(unittest.TestCase):
         caedc0f880459ab7f779e410d854ba3e = yellow
         f8d6a5a1048e120012f949ebba817205 = red
         """
-        self.dedupifier.use_hash = True
-        self.dedupifier.get_items()
+        dedupifier = dedupe.Dedupifier(self.root_path, use_hash=True)
+        dedupifier.get_items()
 
-        self.assertEqual(len(self.dedupifier.items), 4)
-        self.assertEqual(len(self.dedupifier.items['4ad906ab212802e3399e47577cd11ea4']), 2)
-        self.assertEqual(len(self.dedupifier.items['f44b218520c49516f4dbd66996e35dbb']), 4)
-        self.assertEqual(len(self.dedupifier.items['caedc0f880459ab7f779e410d854ba3e']), 1)
-        self.assertEqual(len(self.dedupifier.items['f8d6a5a1048e120012f949ebba817205']), 6)
+        self.assertEqual(len(dedupifier.items), 4)
+        self.assertEqual(len(dedupifier.items['4ad906ab212802e3399e47577cd11ea4']), 2)
+        self.assertEqual(len(dedupifier.items['f44b218520c49516f4dbd66996e35dbb']), 4)
+        self.assertEqual(len(dedupifier.items['caedc0f880459ab7f779e410d854ba3e']), 1)
+        self.assertEqual(len(dedupifier.items['f8d6a5a1048e120012f949ebba817205']), 6)
 
+
+class RemoveDuplicatesTestCase(BaseTestCase):
+
+    def test_remove_duplicates(self):
+        dedupifier = dedupe.Dedupifier(self.root_path, use_hash=True)
+        dedupifier.get_items()
+        dedupifier.remove_duplicates()
+
+        self.assertEqual(len(dedupifier.items), 4)
+
+        for key in ['4ad906ab212802e3399e47577cd11ea4', 'f44b218520c49516f4dbd66996e35dbb',
+          'caedc0f880459ab7f779e410d854ba3e', 'f8d6a5a1048e120012f949ebba817205']:
+
+            self.assertTrue(os.path.exists(dedupifier.items[key][0]))
+
+            for file in dedupifier.items[key][1:]:
+                self.assertFalse(os.path.exists(file))

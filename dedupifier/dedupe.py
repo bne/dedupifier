@@ -4,6 +4,7 @@ import hashlib
 import argparse
 import itertools
 import logging
+from distutils.util import strtobool
 
 spinner = itertools.cycle(['-', '/', '|', '\\'])
 logger = logging.getLogger()
@@ -41,14 +42,13 @@ class Dedupifier(object):
 
     def get_items(self):
         self.items = {}
-        if self.verbosity < 2:
-            sys.stdout.write('Processing items\n')
+        sys.stdout.write('Processing items\n')
 
         num_files = 0
         num_keys = 0
 
         for root, subdirs, files in os.walk(self.path):
-            if self.verbosity > 2:
+            if self.verbosity > 1:
                 sys.stdout.write('Entering {}\n'.format(root))
 
             for filename in files:
@@ -76,19 +76,26 @@ class Dedupifier(object):
                         if self.verbosity > 1:
                             sys.stdout.write('Adding new item {} from {}\n'.format(key, full_path))
                         self.items[key] = []
+                    else:
+                        if self.verbosity > 1:
+                            sys.stdout.write('Adding file {} to {}\n'.format(full_path, key))
 
                     self.items[key].append(full_path)
 
-        if self.verbosity < 2:
-            sys.stdout.write('Found {} items in {} files\n'.format(num_keys, num_files))
+        sys.stdout.write('Found {} items in {} files\n'.format(num_keys, num_files))
 
         if self.log_file:
             sys.stdout.write('Writing results to {}\n'.format(self.log_file.name))
             self.write_to_log()
 
-        sys.stdout.write('Done\n')
-
         return self.items
+
+    def remove_duplicates(self):
+        for item in self.items:
+            for file in self.items[item][1:]:
+                if self.verbosity > 1:
+                    sys.stdout.write('Removing file {}\n'.format(file))
+                os.remove(file)
 
 
 def main():
@@ -98,12 +105,25 @@ def main():
     parser.add_argument('-x', dest='use_hash', action='store_false', default=True,
         help='use filename as a key instead of hash')
     parser.add_argument('-l', dest='log_file', default='dedupe.log',
-        type=argparse.FileType('w'), help='save to logfile')
-    parser.add_argument('-v', dest='verbosity', default=0, action='count', help='verbosity')
+        type=argparse.FileType('w'), help='name of logfile to save output to [dedupe.log]')
+    parser.add_argument('-v', dest='verbosity', default=0, action='count',
+        help='verbosity')
+    parser.add_argument('-r', '--remove', dest='remove', action='store_true', default=False,
+        help='Remove duplicate files')
     args = parser.parse_args()
 
     dedupifier = Dedupifier(args.path, verbosity=args.verbosity, use_hash=args.use_hash, log_file=args.log_file)
     dedupifier.get_items()
+
+    if args.remove:
+        sys.stdout.write('Are you sure you want to remove duplicate files? ')
+        while True:
+            try:
+                if strtobool(input().lower()):
+                    dedupifier.remove_duplicates()
+                return True
+            except ValueError:
+                sys.stdout.write('Please respond with y or n.\n')
 
 
 if __name__ == "__main__":
