@@ -6,7 +6,7 @@ install
     virtualenv --python=python3.4 .
     bin/pip install pytest -e .
 
-do
+run
 ::
     bin/dedupe --help
 
